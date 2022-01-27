@@ -1,1 +1,1 @@
-# TodoAppDjango
+# Mini Blog App
