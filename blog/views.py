@@ -12,27 +12,45 @@ from django.contrib.auth.models import Group
 # Create your views here.
 
 
-def loginpage(request):
 
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+def registerPage(request):
 
-        user = authenticate(request, username=username, password=password)
+	form = CreateUserForm()
+	if request.method == 'POST':
+		form = CreateUserForm(request.POST)
+		if form.is_valid():
+			user = form.save()
+			username = form.cleaned_data.get('username')
+			messages.success(request, 'Account was created for ' + username)
 
-        if user is not None:
-            login(request, user)
-            return redirect('dashboard')
-        else:
-            messages.info(request, 'Username OR password is incorrect')
+			return redirect('login')		
 
-    context = {}
-    return render(request, 'blog/login.html', context)
+	context = {'form':form}
+	return render(request, 'blog/register.html', context)
 
+
+def loginPage(request):
+
+	if request.method == 'POST':
+		username = request.POST.get('username')
+		password =request.POST.get('password')
+
+		user = authenticate(request, username=username, password=password)
+
+		if user is not None:
+			login(request, user)
+			return redirect('home')
+		else:
+			messages.info(request, 'Username OR password is incorrect')
+
+	context = {}
+	return render(request, 'blog/login.html', context)
 
 def logoutUser(request):
-    logout(request)
-    return redirect('login')
+	logout(request)
+	return redirect('home')
+
+
 
 
 def home(request):
@@ -45,7 +63,9 @@ def blogs_list(request):
 
 
 def blogger_detail(request, author_id):
-    return render(request, 'blog/base.html')
+    blogger = User.objects.get(id=author_id)
+    posts = Post.objects.filter(blogger_name=author_id)
+    return render(request, 'blog/bloggerdetail.html',{'blogger': blogger,'posts':posts})
 
 
 def blog_post_detail(request, pk):
@@ -54,4 +74,5 @@ def blog_post_detail(request, pk):
 
 
 def bloggers_list(request):
-    return render(request, 'blog/base.html')
+    bloggers = User.objects.all()
+    return render(request, 'blog/bloggerlist.html', {'bloggers': bloggers})
